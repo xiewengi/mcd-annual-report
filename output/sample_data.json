@@ -1,0 +1,1027 @@
+{
+  "meta": {
+    "report_title": "麦门年度体检报告",
+    "report_year": "2025-2026",
+    "generated_at": "2026-10-12 15:49:07"
+  },
+  "summary": {
+    "total_orders": 30,
+    "total_amount": 1536.3,
+    "days_between": 353,
+    "avg_orders_per_week": 0.6,
+    "nutrition_match_rate": 100.0,
+    "unmatched_products": []
+  },
+  "nutrition_total": {
+    "energy_kj": 102997.5,
+    "energy_kcal": 24617.0,
+    "protein": 965.0,
+    "fat": 988.0,
+    "carbohydrate": 2879.0,
+    "sodium": 36665.0,
+    "calcium": 6703.0
+  },
+  "kcal_stats": {
+    "avg_per_order": 821.0,
+    "max_single_order": 1181,
+    "min_single_order": 455,
+    "meal_period_breakdown": [
+      {
+        "period": "宵夜",
+        "period_key": "supper",
+        "count": 12,
+        "avg_kcal": 754.0,
+        "recommended_range": "300-600",
+        "within_range": false
+      },
+      {
+        "period": "早餐",
+        "period_key": "breakfast",
+        "count": 10,
+        "avg_kcal": 935.0,
+        "recommended_range": "300-600",
+        "within_range": false
+      },
+      {
+        "period": "下午茶",
+        "period_key": "afternoon",
+        "count": 1,
+        "avg_kcal": 513.0,
+        "recommended_range": "150-450",
+        "within_range": false
+      },
+      {
+        "period": "午餐",
+        "period_key": "lunch",
+        "count": 7,
+        "avg_kcal": 816.0,
+        "recommended_range": "500-1000",
+        "within_range": true
+      }
+    ]
+  },
+  "meal_period_distribution": [
+    {
+      "period": "宵夜",
+      "count": 12,
+      "period_key": "supper"
+    },
+    {
+      "period": "早餐",
+      "count": 10,
+      "period_key": "breakfast"
+    },
+    {
+      "period": "午餐",
+      "count": 7,
+      "period_key": "lunch"
+    },
+    {
+      "period": "下午茶",
+      "count": 1,
+      "period_key": "afternoon"
+    }
+  ],
+  "monthly_trend": [
+    {
+      "month": "2025-10",
+      "orders": 2,
+      "total_kcal": 1823.0,
+      "total_amount": 88.5,
+      "avg_kcal_per_order": 912.0
+    },
+    {
+      "month": "2025-11",
+      "orders": 2,
+      "total_kcal": 1593.0,
+      "total_amount": 93.7,
+      "avg_kcal_per_order": 796.0
+    },
+    {
+      "month": "2025-12",
+      "orders": 3,
+      "total_kcal": 2995.0,
+      "total_amount": 148.0,
+      "avg_kcal_per_order": 998.0
+    },
+    {
+      "month": "2026-01",
+      "orders": 2,
+      "total_kcal": 1204.0,
+      "total_amount": 93.0,
+      "avg_kcal_per_order": 602.0
+    },
+    {
+      "month": "2026-02",
+      "orders": 2,
+      "total_kcal": 1892.0,
+      "total_amount": 122.3,
+      "avg_kcal_per_order": 946.0
+    },
+    {
+      "month": "2026-03",
+      "orders": 2,
+      "total_kcal": 1204.0,
+      "total_amount": 122.4,
+      "avg_kcal_per_order": 602.0
+    },
+    {
+      "month": "2026-04",
+      "orders": 2,
+      "total_kcal": 1953.0,
+      "total_amount": 96.8,
+      "avg_kcal_per_order": 976.0
+    },
+    {
+      "month": "2026-05",
+      "orders": 2,
+      "total_kcal": 1672.0,
+      "total_amount": 104.7,
+      "avg_kcal_per_order": 836.0
+    },
+    {
+      "month": "2026-06",
+      "orders": 1,
+      "total_kcal": 947.0,
+      "total_amount": 33.6,
+      "avg_kcal_per_order": 947.0
+    },
+    {
+      "month": "2026-07",
+      "orders": 6,
+      "total_kcal": 4607.0,
+      "total_amount": 338.3,
+      "avg_kcal_per_order": 768.0
+    },
+    {
+      "month": "2026-08",
+      "orders": 2,
+      "total_kcal": 2086.0,
+      "total_amount": 77.3,
+      "avg_kcal_per_order": 1043.0
+    },
+    {
+      "month": "2026-09",
+      "orders": 3,
+      "total_kcal": 2103.0,
+      "total_amount": 143.3,
+      "avg_kcal_per_order": 701.0
+    },
+    {
+      "month": "2026-10",
+      "orders": 1,
+      "total_kcal": 538.0,
+      "total_amount": 74.4,
+      "avg_kcal_per_order": 538.0
+    }
+  ],
+  "top_products": [
+    {
+      "rank": 1,
+      "name": "可乐中杯",
+      "quantity": 23
+    },
+    {
+      "rank": 2,
+      "name": "咖啡中杯",
+      "quantity": 10
+    },
+    {
+      "rank": 3,
+      "name": "巨无霸",
+      "quantity": 9
+    },
+    {
+      "rank": 4,
+      "name": "圆筒冰淇淋",
+      "quantity": 9
+    },
+    {
+      "rank": 5,
+      "name": "麦辣鸡翅-2块",
+      "quantity": 8
+    },
+    {
+      "rank": 6,
+      "name": "双层吉士汉堡",
+      "quantity": 7
+    },
+    {
+      "rank": 7,
+      "name": "麦香鱼",
+      "quantity": 7
+    },
+    {
+      "rank": 8,
+      "name": "中薯条",
+      "quantity": 6
+    },
+    {
+      "rank": 9,
+      "name": "麦乐鸡5块",
+      "quantity": 6
+    },
+    {
+      "rank": 10,
+      "name": "板烧鸡腿堡",
+      "quantity": 5
+    },
+    {
+      "rank": 11,
+      "name": "草莓新地",
+      "quantity": 5
+    },
+    {
+      "rank": 12,
+      "name": "菠萝派",
+      "quantity": 5
+    },
+    {
+      "rank": 13,
+      "name": "雪碧中杯",
+      "quantity": 3
+    },
+    {
+      "rank": 14,
+      "name": "麦辣鸡腿汉堡",
+      "quantity": 2
+    }
+  ],
+  "health_assessment": {
+    "scores": {
+      "热量": 90,
+      "钠摄入": 75,
+      "蛋白质": 90,
+      "脂肪": 85
+    },
+    "details": {
+      "热量": "平均每单 821.0 kcal，在合理区间内",
+      "钠摄入": "平均每单钠 1222.0mg，偏高！注意控盐",
+      "蛋白质": "平均每单蛋白质 32.2g，优秀",
+      "脂肪": "平均每单脂肪 32.9g，合理"
+    },
+    "overall_score": 85.0,
+    "grade": "麦门健康达人 ⭐⭐⭐"
+  },
+  "persona": {
+    "main": {
+      "name": "麦门早起党",
+      "emoji": "🌅",
+      "desc": "麦当劳早餐治好了我的赖床"
+    },
+    "sub": [
+      {
+        "name": "深夜麦客",
+        "emoji": "🌙",
+        "desc": "凌晨的麦当劳是我的午夜食堂"
+      }
+    ],
+    "breakdown": {
+      "汉堡占比": "22%",
+      "鸡肉占比": "20%",
+      "饮料占比": "34%",
+      "甜品占比": "18%",
+      "早餐频率": "33%",
+      "宵夜频率": "40%"
+    }
+  },
+  "keywords": [
+    "📅 2026-07 是你最想吃麦当劳的月份，点了 6 单",
+    "💰 最贵一餐：78.4 元（2026-05-05 08:06:07）",
+    "🔥 热量巅峰：1181 kcal 的一餐（2026-08-06 05:51:07）",
+    "✨ 麦门健康达人——吃麦当劳也能吃出平衡",
+    "📊 每月平均 2.5 单麦当劳"
+  ],
+  "orders_detail": [
+    {
+      "time": "2026-09-05 00:50:07",
+      "meal_period": "宵夜",
+      "store": "麦当劳杭州文三路店",
+      "amount": "30.2",
+      "kcal": 685,
+      "items": [
+        {
+          "name": "板烧鸡腿堡",
+          "qty": 1,
+          "kcal": 391
+        },
+        {
+          "name": "可乐中杯",
+          "qty": 2,
+          "kcal": 294
+        }
+      ]
+    },
+    {
+      "time": "2026-06-27 22:24:07",
+      "meal_period": "宵夜",
+      "store": "麦当劳杭州西湖银泰店",
+      "amount": "33.6",
+      "kcal": 947,
+      "items": [
+        {
+          "name": "双层吉士汉堡",
+          "qty": 1,
+          "kcal": 429
+        },
+        {
+          "name": "麦辣鸡翅-2块",
+          "qty": 1,
+          "kcal": 224
+        },
+        {
+          "name": "可乐中杯",
+          "qty": 2,
+          "kcal": 294
+        }
+      ]
+    },
+    {
+      "time": "2025-12-04 00:13:07",
+      "meal_period": "宵夜",
+      "store": "麦当劳杭州庆春路店",
+      "amount": "41.1",
+      "kcal": 908,
+      "items": [
+        {
+          "name": "麦香鱼",
+          "qty": 1,
+          "kcal": 325
+        },
+        {
+          "name": "中薯条",
+          "qty": 1,
+          "kcal": 289
+        },
+        {
+          "name": "可乐中杯",
+          "qty": 2,
+          "kcal": 294
+        }
+      ]
+    },
+    {
+      "time": "2026-08-25 09:25:07",
+      "meal_period": "早餐",
+      "store": "麦当劳杭州西湖银泰店",
+      "amount": "49.9",
+      "kcal": 905,
+      "items": [
+        {
+          "name": "巨无霸",
+          "qty": 1,
+          "kcal": 513
+        },
+        {
+          "name": "可乐中杯",
+          "qty": 1,
+          "kcal": 147
+        },
+        {
+          "name": "草莓新地",
+          "qty": 1,
+          "kcal": 245
+        }
+      ]
+    },
+    {
+      "time": "2026-01-04 09:11:07",
+      "meal_period": "早餐",
+      "store": "麦当劳杭州庆春路店",
+      "amount": "45.9",
+      "kcal": 562,
+      "items": [
+        {
+          "name": "麦香鱼",
+          "qty": 1,
+          "kcal": 325
+        },
+        {
+          "name": "麦辣鸡翅-2块",
+          "qty": 1,
+          "kcal": 224
+        },
+        {
+          "name": "咖啡中杯",
+          "qty": 1,
+          "kcal": 13
+        }
+      ]
+    },
+    {
+      "time": "2026-09-30 15:03:07",
+      "meal_period": "下午茶",
+      "store": "麦当劳杭州文三路店",
+      "amount": "39.7",
+      "kcal": 513,
+      "items": [
+        {
+          "name": "巨无霸",
+          "qty": 1,
+          "kcal": 513
+        }
+      ]
+    },
+    {
+      "time": "2026-07-30 08:02:07",
+      "meal_period": "早餐",
+      "store": "麦当劳杭州文三路店",
+      "amount": "47.0",
+      "kcal": 1021,
+      "items": [
+        {
+          "name": "麦辣鸡腿汉堡",
+          "qty": 1,
+          "kcal": 485
+        },
+        {
+          "name": "中薯条",
+          "qty": 1,
+          "kcal": 289
+        },
+        {
+          "name": "咖啡中杯",
+          "qty": 2,
+          "kcal": 26
+        },
+        {
+          "name": "菠萝派",
+          "qty": 1,
+          "kcal": 221
+        }
+      ]
+    },
+    {
+      "time": "2025-12-22 14:20:07",
+      "meal_period": "午餐",
+      "store": "麦当劳杭州西湖银泰店",
+      "amount": "46.0",
+      "kcal": 982,
+      "items": [
+        {
+          "name": "巨无霸",
+          "qty": 1,
+          "kcal": 513
+        },
+        {
+          "name": "麦辣鸡翅-2块",
+          "qty": 1,
+          "kcal": 224
+        },
+        {
+          "name": "草莓新地",
+          "qty": 1,
+          "kcal": 245
+        }
+      ]
+    },
+    {
+      "time": "2026-07-10 06:24:07",
+      "meal_period": "早餐",
+      "store": "麦当劳杭州庆春路店",
+      "amount": "50.0",
+      "kcal": 1020,
+      "items": [
+        {
+          "name": "巨无霸",
+          "qty": 1,
+          "kcal": 513
+        },
+        {
+          "name": "麦乐鸡5块",
+          "qty": 1,
+          "kcal": 213
+        },
+        {
+          "name": "可乐中杯",
+          "qty": 2,
+          "kcal": 294
+        }
+      ]
+    },
+    {
+      "time": "2026-02-24 14:37:07",
+      "meal_period": "午餐",
+      "store": "麦当劳杭州庆春路店",
+      "amount": "75.5",
+      "kcal": 1168,
+      "items": [
+        {
+          "name": "双层吉士汉堡",
+          "qty": 1,
+          "kcal": 429
+        },
+        {
+          "name": "麦辣鸡翅-2块",
+          "qty": 1,
+          "kcal": 224
+        },
+        {
+          "name": "可乐中杯",
+          "qty": 2,
+          "kcal": 294
+        },
+        {
+          "name": "菠萝派",
+          "qty": 1,
+          "kcal": 221
+        }
+      ]
+    },
+    {
+      "time": "2026-03-27 12:50:07",
+      "meal_period": "午餐",
+      "store": "麦当劳杭州文三路店",
+      "amount": "65.3",
+      "kcal": 707,
+      "items": [
+        {
+          "name": "麦香鱼",
+          "qty": 1,
+          "kcal": 325
+        },
+        {
+          "name": "中薯条",
+          "qty": 1,
+          "kcal": 289
+        },
+        {
+          "name": "圆筒冰淇淋",
+          "qty": 1,
+          "kcal": 93
+        }
+      ]
+    },
+    {
+      "time": "2026-07-12 01:57:07",
+      "meal_period": "宵夜",
+      "store": "麦当劳杭州西湖银泰店",
+      "amount": "60.7",
+      "kcal": 797,
+      "items": [
+        {
+          "name": "双层吉士汉堡",
+          "qty": 1,
+          "kcal": 429
+        },
+        {
+          "name": "可乐中杯",
+          "qty": 1,
+          "kcal": 147
+        },
+        {
+          "name": "菠萝派",
+          "qty": 1,
+          "kcal": 221
+        }
+      ]
+    },
+    {
+      "time": "2026-07-04 11:56:07",
+      "meal_period": "午餐",
+      "store": "麦当劳杭州庆春路店",
+      "amount": "28.9",
+      "kcal": 484,
+      "items": [
+        {
+          "name": "板烧鸡腿堡",
+          "qty": 1,
+          "kcal": 391
+        },
+        {
+          "name": "圆筒冰淇淋",
+          "qty": 1,
+          "kcal": 93
+        }
+      ]
+    },
+    {
+      "time": "2025-11-12 04:53:07",
+      "meal_period": "宵夜",
+      "store": "麦当劳杭州西湖银泰店",
+      "amount": "68.2",
+      "kcal": 565,
+      "items": [
+        {
+          "name": "麦香鱼",
+          "qty": 1,
+          "kcal": 325
+        },
+        {
+          "name": "可乐中杯",
+          "qty": 1,
+          "kcal": 147
+        },
+        {
+          "name": "圆筒冰淇淋",
+          "qty": 1,
+          "kcal": 93
+        }
+      ]
+    },
+    {
+      "time": "2026-01-18 00:55:07",
+      "meal_period": "宵夜",
+      "store": "麦当劳杭州西湖银泰店",
+      "amount": "47.1",
+      "kcal": 642,
+      "items": [
+        {
+          "name": "麦香鱼",
+          "qty": 1,
+          "kcal": 325
+        },
+        {
+          "name": "麦辣鸡翅-2块",
+          "qty": 1,
+          "kcal": 224
+        },
+        {
+          "name": "圆筒冰淇淋",
+          "qty": 1,
+          "kcal": 93
+        }
+      ]
+    },
+    {
+      "time": "2025-12-07 05:01:07",
+      "meal_period": "早餐",
+      "store": "麦当劳杭州庆春路店",
+      "amount": "60.9",
+      "kcal": 1105,
+      "items": [
+        {
+          "name": "双层吉士汉堡",
+          "qty": 1,
+          "kcal": 429
+        },
+        {
+          "name": "中薯条",
+          "qty": 1,
+          "kcal": 289
+        },
+        {
+          "name": "可乐中杯",
+          "qty": 2,
+          "kcal": 294
+        },
+        {
+          "name": "圆筒冰淇淋",
+          "qty": 1,
+          "kcal": 93
+        }
+      ]
+    },
+    {
+      "time": "2025-10-20 00:48:07",
+      "meal_period": "宵夜",
+      "store": "麦当劳杭州西湖银泰店",
+      "amount": "46.5",
+      "kcal": 974,
+      "items": [
+        {
+          "name": "板烧鸡腿堡",
+          "qty": 1,
+          "kcal": 391
+        },
+        {
+          "name": "中薯条",
+          "qty": 1,
+          "kcal": 289
+        },
+        {
+          "name": "可乐中杯",
+          "qty": 2,
+          "kcal": 294
+        }
+      ]
+    },
+    {
+      "time": "2026-03-08 11:33:07",
+      "meal_period": "午餐",
+      "store": "麦当劳杭州庆春路店",
+      "amount": "57.1",
+      "kcal": 497,
+      "items": [
+        {
+          "name": "板烧鸡腿堡",
+          "qty": 1,
+          "kcal": 391
+        },
+        {
+          "name": "咖啡中杯",
+          "qty": 1,
+          "kcal": 13
+        },
+        {
+          "name": "圆筒冰淇淋",
+          "qty": 1,
+          "kcal": 93
+        }
+      ]
+    },
+    {
+      "time": "2026-07-11 02:52:07",
+      "meal_period": "宵夜",
+      "store": "麦当劳杭州庆春路店",
+      "amount": "76.8",
+      "kcal": 830,
+      "items": [
+        {
+          "name": "巨无霸",
+          "qty": 1,
+          "kcal": 513
+        },
+        {
+          "name": "麦辣鸡翅-2块",
+          "qty": 1,
+          "kcal": 224
+        },
+        {
+          "name": "圆筒冰淇淋",
+          "qty": 1,
+          "kcal": 93
+        }
+      ]
+    },
+    {
+      "time": "2026-02-15 23:28:07",
+      "meal_period": "宵夜",
+      "store": "麦当劳杭州庆春路店",
+      "amount": "46.8",
+      "kcal": 724,
+      "items": [
+        {
+          "name": "麦辣鸡腿汉堡",
+          "qty": 1,
+          "kcal": 485
+        },
+        {
+          "name": "麦乐鸡5块",
+          "qty": 1,
+          "kcal": 213
+        },
+        {
+          "name": "咖啡中杯",
+          "qty": 2,
+          "kcal": 26
+        }
+      ]
+    },
+    {
+      "time": "2026-09-08 07:18:07",
+      "meal_period": "早餐",
+      "store": "麦当劳杭州文三路店",
+      "amount": "73.4",
+      "kcal": 905,
+      "items": [
+        {
+          "name": "巨无霸",
+          "qty": 1,
+          "kcal": 513
+        },
+        {
+          "name": "可乐中杯",
+          "qty": 1,
+          "kcal": 147
+        },
+        {
+          "name": "草莓新地",
+          "qty": 1,
+          "kcal": 245
+        }
+      ]
+    },
+    {
+      "time": "2026-04-20 06:59:07",
+      "meal_period": "早餐",
+      "store": "麦当劳杭州文三路店",
+      "amount": "31.3",
+      "kcal": 976,
+      "items": [
+        {
+          "name": "双层吉士汉堡",
+          "qty": 1,
+          "kcal": 429
+        },
+        {
+          "name": "中薯条",
+          "qty": 1,
+          "kcal": 289
+        },
+        {
+          "name": "咖啡中杯",
+          "qty": 1,
+          "kcal": 13
+        },
+        {
+          "name": "草莓新地",
+          "qty": 1,
+          "kcal": 245
+        }
+      ]
+    },
+    {
+      "time": "2026-07-23 02:06:07",
+      "meal_period": "宵夜",
+      "store": "麦当劳杭州文三路店",
+      "amount": "74.9",
+      "kcal": 455,
+      "items": [
+        {
+          "name": "双层吉士汉堡",
+          "qty": 1,
+          "kcal": 429
+        },
+        {
+          "name": "咖啡中杯",
+          "qty": 2,
+          "kcal": 26
+        }
+      ]
+    },
+    {
+      "time": "2025-11-29 11:42:07",
+      "meal_period": "午餐",
+      "store": "麦当劳杭州文三路店",
+      "amount": "25.5",
+      "kcal": 1028,
+      "items": [
+        {
+          "name": "巨无霸",
+          "qty": 1,
+          "kcal": 513
+        },
+        {
+          "name": "可乐中杯",
+          "qty": 2,
+          "kcal": 294
+        },
+        {
+          "name": "菠萝派",
+          "qty": 1,
+          "kcal": 221
+        }
+      ]
+    },
+    {
+      "time": "2026-10-01 02:23:07",
+      "meal_period": "宵夜",
+      "store": "麦当劳杭州文三路店",
+      "amount": "74.4",
+      "kcal": 538,
+      "items": [
+        {
+          "name": "麦香鱼",
+          "qty": 1,
+          "kcal": 325
+        },
+        {
+          "name": "麦乐鸡5块",
+          "qty": 1,
+          "kcal": 213
+        }
+      ]
+    },
+    {
+      "time": "2026-04-14 04:32:07",
+      "meal_period": "宵夜",
+      "store": "麦当劳杭州西湖银泰店",
+      "amount": "65.5",
+      "kcal": 977,
+      "items": [
+        {
+          "name": "巨无霸",
+          "qty": 1,
+          "kcal": 513
+        },
+        {
+          "name": "麦辣鸡翅-2块",
+          "qty": 1,
+          "kcal": 224
+        },
+        {
+          "name": "可乐中杯",
+          "qty": 1,
+          "kcal": 147
+        },
+        {
+          "name": "圆筒冰淇淋",
+          "qty": 1,
+          "kcal": 93
+        }
+      ]
+    },
+    {
+      "time": "2026-05-11 05:06:07",
+      "meal_period": "早餐",
+      "store": "麦当劳杭州文三路店",
+      "amount": "26.3",
+      "kcal": 1029,
+      "items": [
+        {
+          "name": "巨无霸",
+          "qty": 1,
+          "kcal": 513
+        },
+        {
+          "name": "麦乐鸡5块",
+          "qty": 1,
+          "kcal": 213
+        },
+        {
+          "name": "雪碧中杯",
+          "qty": 2,
+          "kcal": 210
+        },
+        {
+          "name": "圆筒冰淇淋",
+          "qty": 1,
+          "kcal": 93
+        }
+      ]
+    },
+    {
+      "time": "2026-05-05 08:06:07",
+      "meal_period": "早餐",
+      "store": "麦当劳杭州文三路店",
+      "amount": "78.4",
+      "kcal": 643,
+      "items": [
+        {
+          "name": "麦香鱼",
+          "qty": 1,
+          "kcal": 325
+        },
+        {
+          "name": "麦乐鸡5块",
+          "qty": 1,
+          "kcal": 213
+        },
+        {
+          "name": "雪碧中杯",
+          "qty": 1,
+          "kcal": 105
+        }
+      ]
+    },
+    {
+      "time": "2026-08-06 05:51:07",
+      "meal_period": "早餐",
+      "store": "麦当劳杭州西湖银泰店",
+      "amount": "27.4",
+      "kcal": 1181,
+      "items": [
+        {
+          "name": "双层吉士汉堡",
+          "qty": 1,
+          "kcal": 429
+        },
+        {
+          "name": "麦乐鸡5块",
+          "qty": 1,
+          "kcal": 213
+        },
+        {
+          "name": "可乐中杯",
+          "qty": 2,
+          "kcal": 294
+        },
+        {
+          "name": "草莓新地",
+          "qty": 1,
+          "kcal": 245
+        }
+      ]
+    },
+    {
+      "time": "2025-10-13 14:48:07",
+      "meal_period": "午餐",
+      "store": "麦当劳杭州西湖银泰店",
+      "amount": "42.0",
+      "kcal": 849,
+      "items": [
+        {
+          "name": "板烧鸡腿堡",
+          "qty": 1,
+          "kcal": 391
+        },
+        {
+          "name": "麦辣鸡翅-2块",
+          "qty": 1,
+          "kcal": 224
+        },
+        {
+          "name": "咖啡中杯",
+          "qty": 1,
+          "kcal": 13
+        },
+        {
+          "name": "菠萝派",
+          "qty": 1,
+          "kcal": 221
+        }
+      ]
+    }
+  ]
+}
