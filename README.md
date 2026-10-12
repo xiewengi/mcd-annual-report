@@ -2,7 +2,31 @@
 
 > **Powered by 麦当劳中国官方 MCP Server** · 2026 麦当劳程序员创意开发大赛参赛作品
 
+<p align="center">
+  <a href="https://xiewengi.github.io/mcd-annual-report/" target="_blank">
+    <img src="assets/social-preview.png" alt="在线 Demo" width="100%" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://xiewengi.github.io/mcd-annual-report/" target="_blank">🚀 在线 Demo（示例报告）</a>
+  ·
+  <a href="https://xiewengi.github.io/mcd-annual-report/real_report.html" target="_blank">📊 真实数据预览</a>
+  ·
+  <a href="https://github.com/xiewengi/mcd-annual-report/topics">🏷️ GitHub Topics</a>
+</p>
+
 你的每一次麦当劳下单，AI 都替你记着。这份报告把你过去一年的麦当劳消费翻个底朝天——从订单拉取、营养匹配、热量分析到健康评分，一键生成专属年度体检报告。
+
+## 🖼️ 报告预览
+
+<p align="center">
+  <img src="assets/report-hero.png" alt="报告 Hero 区" width="100%" />
+</p>
+
+<p align="center">
+  <img src="assets/report-full.png" alt="报告完整预览" width="100%" />
+</p>
 
 ## ✨ 能做什么
 

@@ -6,3 +6,4 @@ __pycache__/
 # Token 敏感信息 - 绝对不提交
 .env
 *.token
+.DS_Store
