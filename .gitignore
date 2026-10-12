@@ -1,0 +1,8 @@
+# 输出文件
+output/
+__pycache__/
+*.pyc
+
+# Token 敏感信息 - 绝对不提交
+.env
+*.token
