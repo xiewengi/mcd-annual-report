@@ -416,44 +416,23 @@ HTML_TEMPLATE_STR = """<!DOCTYPE html>
       __orders_rows__
     </tbody>
 
-<!-- 双模式：命令行引导 + 页面 JSON 上传 -->
+<!-- 获取你的报告 -->
 <div class="card" style="background:linear-gradient(135deg,#ff9800,#f44336); color:white;">
   <h2 style="color:white; text-align:center;">🎁 想看看你自己的麦门年度报告？</h2>
-  <p style="font-size:1.05em; text-align:center; line-height:1.6; opacity:0.95;">
-    两种方式，任选其一👇
+  <p style="text-align:center; line-height:1.8; font-size:1.05em; opacity:0.95; margin:16px 0 24px;">
+    全程本地运行，Token 不上传。3 步搞定👇
   </p>
-</div>
-
-<!-- 方式 A：页面内上传 JSON -->
-<div class="card">
-  <h2 style="color:#d84315;">🖥️ 方式 A：上传你的数据（最快）</h2>
-  <p style="color:#666;">
-    已经跑过 generate_report.py 了？把 report_data.json 拖进来，立刻在这个页面上看到你的体检报告。
-  </p>
-  <div style="display:flex; gap:12px; margin:16px 0; align-items:center; flex-wrap:wrap;">
-    <button onclick="document.getElementById('jsonFileInput').click()" style="background:#f44336; color:white; border:none; padding:12px 28px; border-radius:12px; font-size:1.05em; font-weight:bold; cursor:pointer;">📂 选择 report_data.json</button>
-    <span id="fileName" style="color:#888; font-size:0.9em;">（还没选文件）</span>
+  <div style="background:rgba(255,255,255,0.15); border-radius:16px; padding:24px 28px; line-height:2.2;">
+    <div><strong>① 申请 MCP Token</strong>（10 秒）<br>
+    👉 <a href="https://open.mcd.cn/mcp" target="_blank" style="color:white; text-decoration:underline; font-weight:normal;">open.mcd.cn/mcp</a> 手机号登录 → 一键复制</div>
+    <div><strong>② 克隆项目</strong><br>
+    <code style="background:rgba(0,0,0,0.3); padding:4px 12px; border-radius:6px; font-family:monospace; display:inline-block; margin-top:2px;">git clone https://github.com/xiewengi/mcd-annual-report.git && cd mcd-annual-report</code></div>
+    <div><strong>③ 一行命令生成</strong><br>
+    <code style="background:rgba(0,0,0,0.3); padding:4px 12px; border-radius:6px; font-family:monospace; display:inline-block; margin-top:2px;">python3 generate_report.py --token "你的Token" --save-json</code><br>
+    <span style="font-size:0.85em; opacity:0.85; margin-top:2px; display:block;">📌 加 <code style="background:rgba(0,0,0,0.3); padding:1px 6px; border-radius:3px;">--gender male --weight 70 --height 175 --age 28</code> 算你的 BMR，健康评分更准</span></div>
   </div>
-  <input type="file" id="jsonFileInput" accept=".json" style="display:none" onchange="handleFileLoad(event)">
-  <div id="uploadResult" style="margin-top:16px;"></div>
-  <div style="background:#fff3e0; padding:12px 16px; border-radius:8px; font-size:0.85em; color:#5d4037; margin-top:12px;">
-    💡 还没数据？先看示例 →
-    <button onclick="loadSample()" style="background:#ff9800; color:white; border:none; padding:6px 16px; border-radius:6px; cursor:pointer; font-size:0.85em; margin-left:8px;">加载示例数据预览</button>
-  </div>
-</div>
-
-<!-- 方式 B：命令行引导 -->
-<div class="card">
-  <h2 style="color:#d84315;">⌨️ 方式 B：本地一行命令生成</h2>
-  <p style="color:#666;">3 步完成，Token 不上传、全程本地。</p>
-  <div style="background:#fff3e0; padding:16px; border-radius:12px; line-height:2;">
-    <div><strong>① 申请 MCP Token</strong> → 打开 <a href="https://open.mcd.cn/mcp" target="_blank" style="color:#f44336;">open.mcd.cn/mcp</a> 手机号登录一键复制</div>
-    <div><strong>② 克隆</strong> → <code style="background:#ffe0b2; padding:2px 8px; border-radius:4px;">git clone https://github.com/xiewengi/mcd-annual-report.git && cd mcd-annual-report</code></div>
-    <div><strong>③ 生成</strong> → <code style="background:#ffe0b2; padding:2px 8px; border-radius:4px;">python3 generate_report.py --token "你的Token" --save-json</code></div>
-    <div style="font-size:0.85em; color:#888; margin-top:6px;">加 <code style="background:#ffe0b2; padding:1px 6px; border-radius:3px;">--gender male --weight 70 --height 175 --age 28</code> 算 BMR，健康评分更准</div>
-  </div>
-  <div style="margin-top:12px; font-size:0.85em; color:#888;">
-    ✅ 本地运行 · Token 不上传 · 生成人格卡 PNG 直接分享
+  <div style="text-align:center; margin-top:20px; font-size:0.95em; opacity:0.9;">
+    ✅ 本地运行 · Token 不上传 · 自动生成人格卡 PNG 分享
   </div>
 </div>
 
@@ -465,47 +444,6 @@ HTML_TEMPLATE_STR = """<!DOCTYPE html>
 
 </div>
 
-<script>
-// ============ JSON 上传 + 动态渲染 ============
-const SAMPLE_DATA = __SAMPLE_DATA_PLACEHOLDER__;  // 渲染时替换成示例 JSON
-
-function handleFileLoad(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    document.getElementById('fileName').textContent = '已选: ' + file.name;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = JSON.parse(e.target.result);
-            injectDynamicData(data);
-        } catch(err) {
-            document.getElementById('uploadResult').innerHTML = '<div style="color:#f44336;">❌ JSON 解析失败: ' + err.message + '</div>';
-        }
-    };
-    reader.readAsText(file);
-}
-
-function loadSample() {
-    injectDynamicData(SAMPLE_DATA);
-}
-
-function injectDynamicData(d) {
-    const r = d.report_placeholder || {};
-    // 替换 summary
-    document.getElementById('dyn_total_orders').textContent = r.total_orders || '--';
-    document.getElementById('dyn_total_amount').textContent = '¥' + (r.total_amount || '--');
-    document.getElementById('dyn_grade').textContent = r.grade || '--';
-    document.getElementById('dyn_score').textContent = r.overall_score || '--';
-    document.getElementById('dyn_persona').textContent = (r.persona_emoji || '') + ' ' + (r.persona_name || '--');
-    document.getElementById('dyn_golden').textContent = r.golden_time || '--';
-    document.getElementById('dyn_top1').textContent = r.top1 || '--';
-    document.getElementById('dyn_top2').textContent = r.top2 || '--';
-    document.getElementById('dyn_top3').textContent = r.top3 || '--';
-    document.getElementById('dyn_match_rate').textContent = (r.match_rate || '--') + '%';
-    // 高亮
-    document.getElementById('uploadResult').innerHTML = '<div style="background:#c8e6c9; color:#2e7d32; padding:10px 16px; border-radius:8px;">✅ 数据已注入！下面报告里的数字已经变成你的了 🎉</div>';
-}
-</script>
 </body></body>
 </html>
 """
@@ -787,30 +725,6 @@ def render_report(data: dict, output_path: str):
     html = html.replace("__simulations_html__", simulations_html)
     html = html.replace("__heatmap_html__", heatmap_html)
     html = html.replace("__golden_time__", golden_time)
-    
-    # === 构造页面内 JSON 上传用的预览数据 ===
-    match_first = match_breakdown[0] if match_breakdown else {}
-    first_product = top_products[0] if top_products else {}
-    second_product = top_products[1] if len(top_products) > 1 else {}
-    third_product = top_products[2] if len(top_products) > 2 else {}
-    report_placeholder = {
-        "report_placeholder": {
-            "total_orders": summary.get("total_orders", 0),
-            "total_amount": summary.get("total_amount", 0),
-            "grade": health.get("grade", ""),
-            "overall_score": health.get("overall_score", 0),
-            "persona_emoji": main_p.get("emoji", ""),
-            "persona_name": main_p.get("name", ""),
-            "golden_time": golden_time,
-            "top1": f"{first_product.get('rank', '')} {first_product.get('name', '')}",
-            "top2": f"{second_product.get('rank', '')} {second_product.get('name', '')}",
-            "top3": f"{third_product.get('rank', '')} {third_product.get('name', '')}",
-            "match_rate": summary.get("nutrition_match_rate", 0),
-        }
-    }
-    import json as _json
-    sample_json = _json.dumps(report_placeholder, ensure_ascii=False)
-    html = html.replace("__SAMPLE_DATA_PLACEHOLDER__", sample_json)
     
     html = html.replace("__n_energy_kcal__", str(nutrition_total.get("energy_kcal", 0)))
     html = html.replace("__n_protein__", str(nutrition_total.get("protein", 0)))
