@@ -414,7 +414,27 @@ HTML_TEMPLATE_STR = """<!DOCTYPE html>
     <tbody>
       __orders_rows__
     </tbody>
-  </table>
+
+<!-- 获取你的报告（引导区块） -->
+<div class="card" style="background:linear-gradient(135deg,#ff9800,#f44336); color:white; text-align:center;">
+  <h2 style="color:white; justify-content:center;">🎁 想看看你自己的麦门年度报告？</h2>
+  <p style="font-size:1.1em; margin:20px 0; line-height:1.8;">
+    这是一份用你的麦当劳真实历史订单生成的专属体检报告<br>
+    下面 3 步，1 分钟就能搞定👇
+  </p>
+  <div style="background:rgba(255,255,255,0.15); border-radius:16px; padding:20px; margin:16px 0; text-align:left; line-height:2;">
+    <div style="font-weight:bold;">① 申请 MCP Token（10 秒）</div>
+    <div>👉 打开 <a href="https://open.mcd.cn/mcp" target="_blank" style="color:white; text-decoration:underline;">open.mcd.cn/mcp</a> 手机号登录 → 一键复制</div>
+    <div style="margin-top:10px; font-weight:bold;">② 克隆本项目</div>
+    <div style="background:rgba(0,0,0,0.3); padding:8px 14px; border-radius:8px; font-family:monospace;">git clone https://github.com/xiewengi/mcd-annual-report.git && cd mcd-annual-report</div>
+    <div style="margin-top:10px; font-weight:bold;">③ 一行命令生成报告</div>
+    <div style="background:rgba(0,0,0,0.3); padding:8px 14px; border-radius:8px; font-family:monospace; overflow-x:auto;">python3 generate_report.py --token "你的Token" --gender male --weight 75 --height 178 --age 28</div>
+    <div style="margin-top:6px; font-size:0.85em; opacity:0.8;">（身高体重给了就能算你的 BMR，健康评分更准；不给也能跑）</div>
+  </div>
+  <p style="margin-top:10px; font-size:0.95em; opacity:0.9;">
+    📌 还能生成人格卡 PNG 直接分享朋友圈！<br>
+    ✅ 本地运行，Token 不上传，隐私安全
+  </p>
 </div>
 
 <div class="footer">
@@ -720,6 +740,19 @@ def render_report(data: dict, output_path: str):
     return output_path
 
 
+def _build_profile(args):
+    """从 args 构建 BMR profile dict（缺字段就返回 None）"""
+    if args.gender and args.weight and args.height:
+        return {
+            "gender": args.gender,
+            "weight": args.weight,
+            "height": args.height,
+            "age": args.age,
+            "activity": args.activity,
+        }
+    return None
+
+
 def main():
     parser = argparse.ArgumentParser(description="麦门年度体检报告生成器")
     parser.add_argument("--token", default=os.environ.get("MCD_TOKEN", ""), help="麦当劳 MCP Token")
@@ -727,14 +760,23 @@ def main():
     parser.add_argument("--save-json", action="store_true", help="同时保存 JSON 数据")
     parser.add_argument("--json-path", default="output/report_data.json", help="JSON 输出路径")
     parser.add_argument("--use-sample", action="store_true", help="用示例数据生成报告（无需 Token）")
+    parser.add_argument("--gender", choices=["male", "female"], help="性别（BMR 计算）")
+    parser.add_argument("--weight", type=float, help="体重 kg（BMR 计算）")
+    parser.add_argument("--height", type=float, help="身高 cm（BMR 计算）")
+    parser.add_argument("--age", type=int, default=28, help="年龄（BMR 计算，默认 28）")
+    parser.add_argument("--activity", default="sedentary",
+                        choices=["sedentary", "light", "moderate", "active", "very_active"],
+                        help="活动水平（默认 sedentary 久坐）")
+    parser.add_argument("--no-card", action="store_true", help="不生成人格卡 PNG")
     
     args = parser.parse_args()
+    profile = _build_profile(args)
     
     if args.use_sample:
         print("📦 使用示例数据生成报告...")
         sample_orders = _sample_orders()
         sample_nutrition = _sample_nutrition()
-        analyzer = AnnualAnalyzer(sample_orders, sample_nutrition)
+        analyzer = AnnualAnalyzer(sample_orders, sample_nutrition, profile)
         data = analyzer.analyze()
     else:
         if not args.token:
@@ -744,7 +786,6 @@ def main():
         print(f"🔌 连接麦当劳 MCP Server...")
         client = McDormandMCPClient(args.token)
         
-        # 测试连接
         init_resp = client.initialize()
         print(f"✅ 已连接: {init_resp.get('result', {}).get('serverInfo', {})}")
         
@@ -760,7 +801,7 @@ def main():
             print("⚠️ 没有历史订单数据，使用示例数据演示...")
             orders = _sample_orders()
         
-        analyzer = AnnualAnalyzer(orders, nutrition)
+        analyzer = AnnualAnalyzer(orders, nutrition, profile)
         data = analyzer.analyze()
     
     print("📊 分析完成，生成报告...")
@@ -776,6 +817,18 @@ def main():
         with open(args.json_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         print(f"✅ JSON 数据已保存: {args.json_path}")
+    
+    # 生成人格卡 PNG
+    if not args.no_card:
+        try:
+            from personality_card import generate_persona_card
+            card_path = "output/persona_card.png"
+            card_output = generate_persona_card(data, card_path)
+            print(f"🖼️  人格卡 PNG 已生成: {card_output}")
+        except ImportError:
+            print("⚠️  Pillow 未安装，跳过人格卡生成。pip install Pillow")
+        except Exception as e:
+            print(f"⚠️  人格卡生成失败: {e}")
     
     # 打印简要预览
     summary = data.get("summary", {})

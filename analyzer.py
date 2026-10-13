@@ -57,9 +57,10 @@ MEAL_NAMES_CN = {
 class AnnualAnalyzer:
     """年度体检报告分析器"""
     
-    def __init__(self, orders: list, nutrition: list):
+    def __init__(self, orders: list, nutrition: list, profile: dict = None):
         self.orders = orders
         self.nutrition = nutrition
+        self.profile = profile or {}
         # 建立菜单名 -> 营养的映射
         self.nutrition_map = {n["name"]: n for n in nutrition}
         # 同义词/模糊匹配表
@@ -363,6 +364,64 @@ class AnnualAnalyzer:
     
     # ============ 辅助方法 ============
     
+    def _calc_bmr(self) -> dict:
+        """Mifflin-St Jeor BMR 公式（比旧公式更准）
+        男性: BMR = 10 × 体重(kg) + 6.25 × 身高(cm) - 5 × 年龄 - 5
+        女性: BMR = 10 × 体重(kg) + 6.25 × 身高(cm) - 5 × 年龄 - 161
+        """
+        gender = self.profile.get("gender", "").lower()
+        weight = self.profile.get("weight")
+        height = self.profile.get("height")
+        age = self.profile.get("age") or 28  # 默认 28
+
+        # 如果缺参数，返回通用标准
+        if not weight or not height or gender not in ("male", "female", "m", "f"):
+            return {
+                "bmr_kcal": 2000,
+                "label": "通用标准（未提供身体数据）",
+                "is_personalized": False,
+                "protein_min_g": 60,     # 成人日均
+                "fat_max_g": 65,         # 成人日均 2000 kcal 对应的上限
+                "sodium_max_mg": 2000,   # WHO 推荐
+            }
+
+        # 修正 gender
+        if gender in ("m", "male", "男"):
+            is_male = True
+        else:
+            is_male = False
+
+        if is_male:
+            bmr = 10 * weight + 6.25 * height - 5 * age - 5
+        else:
+            bmr = 10 * weight + 6.25 * height - 5 * age - 161
+
+        # 活动系数（默认 sedentary 久坐）
+        activity = self.profile.get("activity", "sedentary")
+        activity_factors = {
+            "sedentary": 1.2,      # 久坐
+            "light": 1.375,        # 轻度活动（每周 1-3 次）
+            "moderate": 1.55,      # 中度（每周 3-5 次）
+            "active": 1.725,       # 重度（每周 6-7 次）
+            "very_active": 1.9,    # 极重度
+        }
+        factor = activity_factors.get(activity, 1.2)
+        tdee = bmr * factor
+
+        # 营养标准：蛋白质 1.6g/kg（健身人群 2.2g/kg），脂肪 ≤ 30% TDEE
+        protein_min = round(weight * 1.6)
+        fat_max = round(tdee * 0.3 / 9)  # 9 kcal/g 脂肪
+
+        return {
+            "bmr_kcal": round(bmr),
+            "tdee_kcal": round(tdee),
+            "label": f"{gender}/{weight}kg/{height}cm/{age}岁 · BMR {round(bmr)} kcal · 推荐每日 {round(tdee)} kcal",
+            "is_personalized": True,
+            "protein_min_g": protein_min,
+            "fat_max_g": fat_max,
+            "sodium_max_mg": 2000,
+        }
+
     def _empty_report(self) -> dict:
         return {"meta": {"report_title": "麦门年度体检报告", "note": "暂无历史订单"}, "summary": {"total_orders": 0}}
     
@@ -430,72 +489,82 @@ class AnnualAnalyzer:
         """计算健康评分（百分制）"""
         if total_orders == 0:
             return {}
-        
-        days_covered = total_orders  # 简化：假设每单代表一天（至少有数据）
-        
+
+        bmr = self._calc_bmr()
+        assumed_mcd_ratio = 0.3  # 麦当劳占日常热量的 30%
+
+        # 用 BMR/TDEE 作为参考
+        if bmr["is_personalized"]:
+            daily_budget = bmr["tdee_kcal"]
+            single_meal_target = daily_budget * assumed_mcd_ratio / 1  # 假设麦当劳 = 一餐的占比
+        else:
+            daily_budget = 2000
+            single_meal_target = 800
+
         scores = {}
         details = {}
-        
-        # 计算"假设这些麦当劳占了你日常饮食的 X%"，给合理的评估
-        # 假设麦当劳占日常热量的 30%
-        assumed_mcd_ratio = 0.3
-        
-        # 各维度得分
-        # 1. 热量
+
+        # 1. 热量 —— 基于个人 TDEE 换算的单餐目标 ±30%
         avg_kcal_per_order = nutrition_totals.get("energy_kcal", 0) / max(total_orders, 1)
-        # 麦当劳一单建议 500-900 kcal
-        if 500 <= avg_kcal_per_order <= 900:
+        target_low = single_meal_target * 0.7
+        target_high = single_meal_target * 1.3
+
+        if target_low <= avg_kcal_per_order <= target_high:
             scores["热量"] = 90
-            details["热量"] = f"平均每单 {round(avg_kcal_per_order, 0)} kcal，在合理区间内"
-        elif avg_kcal_per_order < 500:
+            details["热量"] = f"平均每单 {round(avg_kcal_per_order, 0)} kcal（单餐目标范围 {round(target_low, 0)}-{round(target_high, 0)} kcal），合理"
+        elif avg_kcal_per_order < target_low:
             scores["热量"] = 75
-            details["热量"] = f"平均每单 {round(avg_kcal_per_order, 0)} kcal，偏低，注意营养补充"
+            details["热量"] = f"平均每单 {round(avg_kcal_per_order, 0)} kcal，低于目标 {round(target_low, 0)}，偏低"
         else:
-            scores["热量"] = max(50, 90 - int((avg_kcal_per_order - 900) / 20))
-            details["热量"] = f"平均每单 {round(avg_kcal_per_order, 0)} kcal，偏高，建议选择轻食搭配"
-        
-        # 2. 钠（盐）—— 麦当劳最容易超标
+            scores["热量"] = max(50, 90 - int((avg_kcal_per_order - target_high) / 30))
+            details["热量"] = f"平均每单 {round(avg_kcal_per_order, 0)} kcal，超过目标 {round(target_high, 0)}，偏高"
+
+        # 2. 钠
         avg_sodium = nutrition_totals.get("sodium", 0) / max(total_orders, 1)
-        # 麦当劳单餐建议钠 < 800mg
-        if avg_sodium <= 800:
+        daily_na_max = bmr["sodium_max_mg"]
+        per_order_na_target = daily_na_max * assumed_mcd_ratio * 1.5  # 单餐允许多一点
+
+        if avg_sodium <= per_order_na_target:
             scores["钠摄入"] = 95
-            details["钠摄入"] = f"平均每单钠 {round(avg_sodium, 0)}mg，健康水平"
-        elif avg_sodium <= 1200:
+            details["钠摄入"] = f"平均每单钠 {round(avg_sodium, 0)}mg（每日上限 {daily_na_max}mg），健康"
+        elif avg_sodium <= per_order_na_target * 1.5:
             scores["钠摄入"] = 75
-            details["钠摄入"] = f"平均每单钠 {round(avg_sodium, 0)}mg，略高，注意少喝可乐多吃蔬菜水果"
+            details["钠摄入"] = f"平均每单钠 {round(avg_sodium, 0)}mg，略高，注意饮料里的隐藏钠"
         else:
-            scores["钠摄入"] = max(40, 75 - int((avg_sodium - 1200) / 50))
-            details["钠摄入"] = f"平均每单钠 {round(avg_sodium, 0)}mg，偏高！注意控盐"
-        
-        # 3. 蛋白质
+            scores["钠摄入"] = max(40, 75 - int((avg_sodium - per_order_na_target * 1.5) / 60))
+            details["钠摄入"] = f"平均每单钠 {round(avg_sodium, 0)}mg，偏高！多喝无糖饮料"
+
+        # 3. 蛋白质 —— 基于 BMR 算出来的蛋白最低值
         avg_protein = nutrition_totals.get("protein", 0) / max(total_orders, 1)
-        # 麦当劳一单蛋白质建议 20-40g
-        if 20 <= avg_protein <= 40:
+        target_protein_per_order = bmr["protein_min_g"] * assumed_mcd_ratio * 2  # 麦当劳单餐应该提供更多
+
+        if avg_protein >= target_protein_per_order * 0.8:
             scores["蛋白质"] = 90
-            details["蛋白质"] = f"平均每单蛋白质 {round(avg_protein, 1)}g，优秀"
-        elif avg_protein < 20:
-            scores["蛋白质"] = 70
-            details["蛋白质"] = f"平均每单蛋白质 {round(avg_protein, 1)}g，偏少，多加份鸡肉吧"
+            details["蛋白质"] = f"平均每单蛋白质 {round(avg_protein, 1)}g（每日目标 {bmr['protein_min_g']}g），充足"
+        elif avg_protein >= target_protein_per_order * 0.5:
+            scores["蛋白质"] = 75
+            details["蛋白质"] = f"平均每单蛋白质 {round(avg_protein, 1)}g，偏少，多加份鸡肉/麦乐鸡"
         else:
-            scores["蛋白质"] = 85
-            details["蛋白质"] = f"平均每单蛋白质 {round(avg_protein, 1)}g，充足"
-        
-        # 4. 脂肪
+            scores["蛋白质"] = max(55, 75 - int((target_protein_per_order * 0.5 - avg_protein) * 2))
+            details["蛋白质"] = f"平均每单蛋白质 {round(avg_protein, 1)}g，偏低！汉堡是最好的蛋白质来源"
+
+        # 4. 脂肪 —— 基于 BMR 算出来的脂肪上限
         avg_fat = nutrition_totals.get("fat", 0) / max(total_orders, 1)
-        if avg_fat <= 40:
+        target_fat_per_order = bmr["fat_max_g"] * assumed_mcd_ratio * 1.5
+
+        if avg_fat <= target_fat_per_order:
             scores["脂肪"] = 85
-            details["脂肪"] = f"平均每单脂肪 {round(avg_fat, 1)}g，合理"
-        elif avg_fat <= 55:
+            details["脂肪"] = f"平均每单脂肪 {round(avg_fat, 1)}g（每日上限 {bmr['fat_max_g']}g），合理"
+        elif avg_fat <= target_fat_per_order * 1.4:
             scores["脂肪"] = 70
-            details["脂肪"] = f"平均每单脂肪 {round(avg_fat, 1)}g，注意减少油炸食品"
+            details["脂肪"] = f"平均每单脂肪 {round(avg_fat, 1)}g，略高，把大薯条换中薯条"
         else:
-            scores["脂肪"] = max(50, 70 - int((avg_fat - 55) / 5))
-            details["脂肪"] = f"平均每单脂肪 {round(avg_fat, 1)}g，偏高！"
-        
+            scores["脂肪"] = max(50, 70 - int((avg_fat - target_fat_per_order * 1.4) / 4))
+            details["脂肪"] = f"平均每单脂肪 {round(avg_fat, 1)}g，偏高！麦辣类换板烧"
+
         # 综合评分
         avg_score = round(sum(scores.values()) / len(scores), 0)
-        
-        # 评级
+
         if avg_score >= 85:
             grade = "麦门健康达人 ⭐⭐⭐"
         elif avg_score >= 70:
@@ -510,6 +579,7 @@ class AnnualAnalyzer:
             "details": details,
             "overall_score": avg_score,
             "grade": grade,
+            "bmr_info": bmr,
         }
     
     def _determine_persona(self, parsed_orders: list, product_counter: Counter, nutrition_totals: dict) -> dict:
