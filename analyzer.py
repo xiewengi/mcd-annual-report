@@ -296,6 +296,12 @@ class AnnualAnalyzer:
         # === 年度关键词 ===
         keywords = self._yearly_highlights(parsed_orders, nutrition_totals, health_scores)
         
+        # === 健康改进模拟器 ===
+        simulations = self._build_health_simulations(parsed_orders, nutrition_totals, health_scores)
+        
+        # === 门店维度 + 7×24 热力图 ===
+        store_analysis = self._build_store_analysis(parsed_orders)
+        
         return {
             "meta": {
                 "report_title": "麦门年度体检报告",
@@ -350,7 +356,9 @@ class AnnualAnalyzer:
                     ]
                 }
                 for o in parsed_orders
-            ]
+            ],
+            "health_simulations": simulations,
+            "store_analysis": store_analysis,
         }
     
     # ============ 辅助方法 ============
@@ -628,3 +636,187 @@ class AnnualAnalyzer:
                 "pct": pct,
             })
         return breakdown
+
+    def _build_health_simulations(self, parsed_orders: list, nutrition_totals: dict, health_scores: dict) -> list:
+        """健康改进模拟器——基于真实历史数据，算"如果改了能好多少" """
+        simulations = []
+        total_orders = len(parsed_orders)
+        h = health_scores or {}
+        overall = h.get("overall_score", 0)
+
+        if total_orders == 0:
+            return simulations
+
+        # 先算一下各类食物的实际点单频次
+        product_counter = Counter()
+        for o in parsed_orders:
+            for pname, pqty in o["products"]:
+                product_counter[pname] += pqty
+
+        def count_keyword_orders(keywords):
+            """算包含指定关键词的商品总次数"""
+            return sum(cnt for name, cnt in product_counter.items()
+                       if any(kw in name for kw in keywords))
+
+        # ====== 模拟 1：把可乐换成无糖/雪碧（省糖） ======
+        drink_count = count_keyword_orders(["可乐", "雪碧", "果汁", "拿铁"])
+        sugary_drink_count = count_keyword_orders(["可乐"])  # 假设主要是可乐
+        if sugary_drink_count >= 3:
+            # 中杯可乐 36g 糖 → 无糖可乐约 0g，省 36g/次
+            yearly_saved_sugar_g = sugary_drink_count * 36
+            yearly_saved_carb_g = sugary_drink_count * 36  # 碳水主要就是糖
+            simulations.append({
+                "icon": "🥤",
+                "action": f"把可乐换成无糖可乐（{sugary_drink_count} 次/年）",
+                "impact": f"每年少摄入约 {yearly_saved_sugar_g}g 糖，相当于 {(yearly_saved_sugar_g/4.2):.0f} 碗白米饭的碳水",
+                "score_hint": "钠摄入得分可升 5-8 分",
+                "grade_hint": "如果当前在 70-80 分段 → 有望到 85+",
+            })
+
+        # ====== 模拟 2：每周少一次大薯条（省脂肪/热量） ======
+        fries_count = count_keyword_orders(["薯条"])
+        big_fries_count = count_keyword_orders(["大薯条"])
+        if fries_count >= 8:  # 至少每月一次
+            # 大薯条 16g 脂肪 / 379 kcal → 换成中薯条 12g / 289 kcal
+            yearly_saved_fat_g = big_fries_count * 4 if big_fries_count > 0 else fries_count * 2
+            yearly_saved_kcal = (big_fries_count * 90 + (fries_count - big_fries_count) * 50)
+            simulations.append({
+                "icon": "🍟",
+                "action": f"大薯条换中薯条（{f'其中 {big_fries_count} 次大薯条' if big_fries_count > 0 else f'共 {fries_count} 次薯条'}）",
+                "impact": f"每年少摄入约 {yearly_saved_fat_g}g 脂肪、{yearly_saved_kcal} kcal",
+                "score_hint": "脂肪 + 热量 两个维度可同时提升",
+                "grade_hint": "健康综合分 +3~+7",
+            })
+
+        # ====== 模拟 3：宵夜提前到睡前 3 小时 ======
+        supper_orders = [o for o in parsed_orders if o["meal_period"] == "supper"]
+        supper_count = len(supper_orders)
+        if supper_count >= 3:
+            late_supper = [o for o in supper_orders if o["datetime"].hour >= 0 and o["datetime"].hour < 5]
+            simulations.append({
+                "icon": "🌙",
+                "action": f"{supper_count} 次宵夜提前到睡前 3 小时吃",
+                "impact": f"其中 {len(late_supper)} 次是凌晨 0-5 点的极限宵夜，调整后可改善夜间代谢",
+                "score_hint": "不改变摄入量，但能降低「放纵战士」评级",
+                "grade_hint": "称号可能从「放纵战士」→「谨慎食客」",
+            })
+
+        # ====== 模拟 4：汉堡换板烧（非油炸，省油） ======
+        fried_burger_count = count_keyword_orders(["麦辣", "脆", "香酥"])
+        grilled_count = count_keyword_orders(["板烧"])
+        if fried_burger_count >= 3 and grilled_count < fried_burger_count:
+            # 假设每次换板烧省 9g 脂肪（麦辣鸡腿堡 24g vs 板烧鸡腿堡 17g）
+            yearly_saved_fat = fried_burger_count * 7
+            simulations.append({
+                "icon": "🍔",
+                "action": f"{fried_burger_count} 次麦辣类汉堡换板烧（非油炸）",
+                "impact": f"每年少摄入约 {yearly_saved_fat}g 脂肪，油脂摄入下降 {(yearly_saved_fat/2000*100):.1f}%",
+                "score_hint": "脂肪得分可大幅提升",
+                "grade_hint": "如果脂肪当前是红灯（<70），有望升到绿灯区",
+            })
+
+        # ====== 模拟 5：最适合你的一步（基于当前最弱项） ======
+        weak_dim = None
+        min_score = 100
+        scores = h.get("scores", {})
+        for dim, sc in scores.items():
+            if sc < min_score:
+                min_score = sc
+                weak_dim = dim
+        if weak_dim and min_score < 85:
+            suggestion_map = {
+                "钠摄入": ("降钠计划", "每次多加一份麦乐鸡时，把饮料换成无糖的——省 36g 糖 ≈ 一杯可乐的钠一半"),
+                "脂肪": ("低脂替换", "下次点巨无霸 + 薯条时，试试板烧鸡腿堡 + 麦乐鸡——少 15g 脂肪"),
+                "热量": ("控卡组合", "巨无霸套餐换板烧套餐——省 120 kcal，蛋白质反而多 4g"),
+                "蛋白质": ("蛋白加成", "每次多加一份麦乐鸡 5 块——+12g 蛋白质，而且比汉堡省脂肪"),
+            }
+            title, tip = suggestion_map.get(weak_dim, ("综合优化", "每次点餐前多花 30 秒想想——真的需要这么多吗？"))
+            simulations.insert(0, {
+                "icon": "🎯",
+                "action": f"【当前最弱项：{weak_dim}】{title}",
+                "impact": tip,
+                "score_hint": f"当前得分 {min_score}，针对性调整提升最快",
+                "grade_hint": f"每改善一个维度 +5~+10 分，综合评分能到 {min(min_score + 10, 100)}+",
+            })
+
+        # 如果什么都没命中，给一个通用建议
+        if not simulations:
+            simulations.append({
+                "icon": "💪",
+                "action": "保持你现在的节奏",
+                "impact": f"你已经是「{h.get('grade', '稳健选手')}」了，继续保持！",
+                "score_hint": f"当前综合分 {overall}，离「麦门健康达人」还差 {max(0, 85 - overall):.0f} 分",
+                "grade_hint": "试着每周少一次薯条或可乐，就能升级",
+            })
+
+        return simulations
+
+    def _build_store_analysis(self, parsed_orders: list) -> dict:
+        """门店维度 + 7×24 点餐热力图"""
+        if not parsed_orders:
+            return {"top_stores": [], "heatmap": []}
+
+        # === 门店排行 ===
+        store_counter = Counter()
+        store_amount = defaultdict(float)
+        store_hours = defaultdict(list)  # 每个门店的到访时间
+        for o in parsed_orders:
+            sn = o.get("store_name", "未知门店")
+            store_counter[sn] += 1
+            try:
+                store_amount[sn] += float(o.get("order_amount", 0))
+            except:
+                pass
+            store_hours[sn].append(o["datetime"])
+
+        top_stores = []
+        for name, count in store_counter.most_common(5):
+            hours = store_hours[name]
+            avg_hour = sum(h.hour + h.minute / 60 for h in hours) / len(hours) if hours else 12
+            avg_hour_int = int(avg_hour)
+            period = get_meal_period(avg_hour_int)
+            top_stores.append({
+                "name": name,
+                "count": count,
+                "amount": round(store_amount[name], 2),
+                "avg_hour_text": f"{avg_hour_int}:{int((avg_hour % 1) * 60):02d}",
+                "typical_period": MEAL_NAMES_CN.get(period, period),
+            })
+
+        # === 7×24 热力图 ===
+        # 7 天 × 24 小时 = 168 格
+        # 用 day_of_week 0=Monday ... 6=Sunday, hour 0-23
+        heatmap = Counter()
+        for o in parsed_orders:
+            dow = o["datetime"].weekday()
+            hour = o["datetime"].hour
+            heatmap[(dow, hour)] += 1
+
+        # 转成矩阵：days[7][24]
+        day_names = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
+        heatmap_data = []
+        max_count = max(heatmap.values()) if heatmap else 1
+        for dow in range(7):
+            row = {"day": day_names[dow], "cells": []}
+            for hour in range(24):
+                cnt = heatmap.get((dow, hour), 0)
+                row["cells"].append({
+                    "hour": hour,
+                    "count": cnt,
+                    "pct": round(cnt / max_count * 100, 1) if max_count > 0 else 0,
+                })
+            heatmap_data.append(row)
+
+        # 找"黄金麦门时间"
+        all_hours = Counter()
+        for o in parsed_orders:
+            all_hours[o["datetime"].hour] += 1
+        best_hour = all_hours.most_common(1)[0] if all_hours else (12, 0)
+        best_dow = Counter(o["datetime"].weekday() for o in parsed_orders).most_common(1)[0] if parsed_orders else (0, 0)
+
+        return {
+            "top_stores": top_stores,
+            "heatmap": heatmap_data,
+            "golden_time": f"周{day_names[best_dow[0]][1]} {best_hour[0]}:00",
+            "golden_time_desc": f"你最常在周{day_names[best_dow[0]][1]}的 {best_hour[0]} 点吃麦当劳",
+        }

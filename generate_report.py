@@ -331,6 +331,16 @@ HTML_TEMPLATE_STR = """<!DOCTYPE html>
   __meal_distribution_html__
 </div>
 
+<!-- 7×24 热力图 -->
+<div class="card">
+  <h2>🗓️ 7×24 点餐热力图</h2>
+  <p style="color:#888; font-size:0.9em; margin-bottom:20px;">
+    每格代表该天某小时的麦当劳下单次数，颜色越深点得越多。<br>
+    你最常在 <strong style="color:#ff5722;">__golden_time__</strong> 吃麦当劳（黄金麦门时间）
+  </p>
+  __heatmap_html__
+</div>
+
 <!-- 月度趋势 -->
 <div class="card">
   <h2>📈 月度消费趋势</h2>
@@ -364,6 +374,21 @@ HTML_TEMPLATE_STR = """<!DOCTYPE html>
   <ul class="highlights">
     __highlights_html__
   </ul>
+</div>
+
+<!-- 门店排行 -->
+<div class="card">
+  <h2>🏪 你最常去的门店</h2>
+  __top_stores_html__
+</div>
+
+<!-- 健康改进模拟器 -->
+<div class="card">
+  <h2>💪 健康改进模拟器</h2>
+  <p style="color:#888; font-size:0.9em; margin-bottom:20px;">
+    基于你这一年的真实点餐数据，算一下如果做这些小改变，健康能好多少——不是"别吃麦当劳"，而是"吃麦当劳也能更健康"。
+  </p>
+  __simulations_html__
 </div>
 
 <!-- 营养总汇总 -->
@@ -417,6 +442,8 @@ def render_report(data: dict, output_path: str):
     keywords = data.get("keywords", [])
     orders = data.get("orders_detail", [])
     match_breakdown = data.get("match_breakdown", [])
+    simulations = data.get("health_simulations", [])
+    store_analysis = data.get("store_analysis", {})
     
     # 匹配可信度总览
     match_breakdown_html = ""
@@ -440,6 +467,77 @@ def render_report(data: dict, output_path: str):
             </div>
           </div>
         """
+
+    # ====== 健康改进模拟器 ======
+    simulations_html = ""
+    for sim in simulations:
+        simulations_html += f"""
+          <div style="background:linear-gradient(135deg,#fff3e0,#ffe0b2); border-radius:16px; padding:20px; margin:16px 0; border-left:4px solid #ff5722;">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+              <span style="font-size:2em;">{sim['icon']}</span>
+              <span style="font-weight:bold; font-size:1.1em; color:#d84315;">{sim['action']}</span>
+            </div>
+            <div style="color:#5d4037; margin-bottom:6px;">💡 {sim['impact']}</div>
+            <div style="color:#666; font-size:0.9em;">
+              <span style="color:#ff9800;">📈 {sim['score_hint']}</span>
+              <span style="color:#4caf50; margin-left:12px;">🎯 {sim['grade_hint']}</span>
+            </div>
+          </div>
+        """
+
+    # ====== 门店排行 ======
+    top_stores = store_analysis.get("top_stores", [])
+    if top_stores:
+        top_stores_html = '<table style="margin-top:10px;"><thead><tr><th>排名</th><th>门店</th><th>单数</th><th>消费</th><th>常去时段</th></tr></thead><tbody>'
+        for i, s in enumerate(top_stores):
+            medal = ["🥇","🥈","🥉"][i] if i < 3 else f"#{i+1}"
+            top_stores_html += f"""
+              <tr>
+                <td style="width:60px;">{medal}</td>
+                <td>{s['name']}</td>
+                <td>{s['count']} 单</td>
+                <td>¥{s['amount']}</td>
+                <td>{s['typical_period']} ({s['avg_hour_text']})</td>
+              </tr>
+            """
+        top_stores_html += "</tbody></table>"
+    else:
+        top_stores_html = "<p>暂无门店数据</p>"
+
+    # ====== 7×24 热力图 ======
+    heatmap_data = store_analysis.get("heatmap", [])
+    golden_time = store_analysis.get("golden_time", "")
+    if heatmap_data:
+        heatmap_html = '<div style="overflow-x:auto;"><table style="border-collapse:collapse; font-size:0.75em; min-width:700px;">'
+        heatmap_html += '<tr><th style="padding:4px 2px; background:#fff3e0;"></th>'
+        for h in range(24):
+            heatmap_html += f'<th style="padding:4px 2px; background:#fff3e0; color:#666; font-weight:normal;">{h}</th>'
+        heatmap_html += '</tr>'
+        for row in heatmap_data:
+            heatmap_html += f'<tr><td style="padding:2px 8px; font-weight:600; background:#fff3e0;">{row["day"]}</td>'
+            for cell in row["cells"]:
+                cnt = cell["count"]
+                pct = cell["pct"]
+                if cnt == 0:
+                    bg = "#fff8e1"
+                elif pct < 20:
+                    bg = "#ffe0b2"
+                elif pct < 50:
+                    bg = "#ffb74d"
+                elif pct < 80:
+                    bg = "#ff7043"
+                else:
+                    bg = "#d84315"
+                heatmap_html += f'<td title="{cnt} 单" style="width:20px; height:20px; background:{bg}; border-radius:3px; text-align:center; font-size:0.6em; color:white; padding:0;">{cnt if cnt > 0 else ""}</td>'
+            heatmap_html += '</tr>'
+        heatmap_html += '</table></div>'
+        heatmap_html += '<div style="margin-top:12px; display:flex; align-items:center; gap:8px; font-size:0.8em; color:#666;">'
+        heatmap_html += '<span>少</span>'
+        for c in ["#fff8e1", "#ffe0b2", "#ffb74d", "#ff7043", "#d84315"]:
+            heatmap_html += f'<div style="width:18px; height:18px; background:{c}; border-radius:3px;"></div>'
+        heatmap_html += '<span>多</span></div>'
+    else:
+        heatmap_html = "<p>暂无足够数据生成热力图</p>"
 
     # 健康评分行
     health_rows = ""
@@ -603,6 +701,10 @@ def render_report(data: dict, output_path: str):
     html = html.replace("__monthly_rows__", monthly_rows)
     html = html.replace("__top_products_rows__", top_products_rows)
     html = html.replace("__highlights_html__", highlights_html)
+    html = html.replace("__top_stores_html__", top_stores_html)
+    html = html.replace("__simulations_html__", simulations_html)
+    html = html.replace("__heatmap_html__", heatmap_html)
+    html = html.replace("__golden_time__", golden_time)
     html = html.replace("__n_energy_kcal__", str(nutrition_total.get("energy_kcal", 0)))
     html = html.replace("__n_protein__", str(nutrition_total.get("protein", 0)))
     html = html.replace("__n_fat__", str(nutrition_total.get("fat", 0)))
