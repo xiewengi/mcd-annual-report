@@ -37,31 +37,31 @@ ACCENT = (255, 255, 255, 230)
 
 
 def _find_font(size: int, bold: bool = False, emoji: bool = False):
-    """找字体。emoji=True 时优先用 Apple Color Emoji（仅 160px 可加载）"""
+    """找字体。emoji=True 时优先用 Apple Color Emoji（仅 160px 可加载）。
+    普通文字：PingFang.ttc 支持 bold=True 时用 index=2 （PingFang SC Bold）。"""
     if emoji:
-        # Apple Color Emoji 只能 160px，按比例缩放后用 160 渲染再贴
-        actual_size = 160
         if os.path.exists(EMOJI_FONT_PATH):
             try:
-                return ImageFont.truetype(EMOJI_FONT_PATH, actual_size)
+                return ImageFont.truetype(EMOJI_FONT_PATH, 160)
             except Exception:
                 pass
-    # 普通文字
+    # 普通文字候选（Apple Color Emoji.ttc 只在 emoji=True 时用，别混进来）
     candidates = [
-        "/System/Library/Fonts/Apple Color Emoji.ttc",  # emoji 专用（仅 160px）
-        # macOS 系统字体
-        "/System/Library/Fonts/PingFang.ttc",
-        "/System/Library/Fonts/STHeiti Medium.ttc",
-        "/System/Library/Fonts/Hiragino Sans GB.ttc",
-        "/System/Library/Fonts/Helvetica.ttc",
-        "/Library/Fonts/Arial Unicode.ttf",
-        # Windows fallback
-        "C:/Windows/Fonts/msyh.ttc",
-        "C:/Windows/Fonts/simhei.ttf",
+        # macOS
+        ("/System/Library/Fonts/PingFang.ttc", 2 if bold else 0),  # index=2=Bold, 0=Regular
+        ("/System/Library/Fonts/STHeiti Medium.ttc", 1 if bold else 0),
+        ("/System/Library/Fonts/Hiragino Sans GB.ttc", None),
+        ("/System/Library/Fonts/Helvetica.ttc", None),
+        ("/Library/Fonts/Arial Unicode.ttf", None),
+        # Windows
+        ("C:/Windows/Fonts/msyh.ttc", 1 if bold else 0),
+        ("C:/Windows/Fonts/simhei.ttf", None),
     ]
-    for path in candidates:
+    for path, idx in candidates:
         if os.path.exists(path):
             try:
+                if idx is not None:
+                    return ImageFont.truetype(path, size, index=idx)
                 return ImageFont.truetype(path, size)
             except Exception:
                 continue
@@ -139,23 +139,32 @@ def generate_persona_card(data: dict, output_path: str = OUTPUT_CARD_PATH) -> st
     font_mid_num = _find_font(100, bold=True)
 
     # === Hero 区 ===
-    hero_top = 100
-    # 大字标题：emoji + 文字分别渲染
-    hero_emoji_font = _find_font(EMOJI_SIZE, emoji=True)
-    _draw_text(draw, "🍔", W // 2 - 190, hero_top + 45, hero_emoji_font, TEXT_LIGHT, anchor="mm", embedded_color=True)
-    _draw_text(draw, "麦门年度报告", W // 2 + 10, hero_top, font_title, TEXT_LIGHT, anchor="mt")
-    # 年份
-    year = meta.get("report_year", "2025")
-    _draw_text(draw, year, W // 2, hero_top + 110, font_big, TEXT_LIGHT, anchor="mt")
+    hero_top = 60
+    from PIL import Image as _PIL_Img
+    def _draw_persona_emoji(draw, canvas, emoji, cx, cy, size=160):
+        src = _PIL_Img.new("RGBA", (200, 200), (0, 0, 0, 0))
+        src_draw = ImageDraw.Draw(src)
+        src_font = ImageFont.truetype(EMOJI_FONT_PATH, 160)
+        src_draw.text((100, 100), emoji, font=src_font, anchor="mm", embedded_color=True)
+        scaled = src.resize((int(size * 1.4), int(size * 1.4)), _PIL_Img.LANCZOS)
+        canvas.paste(scaled, (int(cx - scaled.width // 2), int(cy - scaled.height // 2)), scaled)
+    
+    # Hero：emoji 在左，标题文字紧接右边（全部 anchor=lt 左对齐）
+    _draw_persona_emoji(draw, canvas, "🍔", 100, hero_top + 40, size=64)
+    title_font = _find_font(64, bold=True)
+    year_font = _find_font(36)
+    _draw_text(draw, "麦门年度报告", 220, hero_top + 20, title_font, TEXT_LIGHT, anchor="lt")
+    _draw_text(draw, "2025-2026", 225, hero_top + 100, year_font, (255, 255, 255, 220), anchor="lt")
+    # 年份单独大字号在下方居中（使用中等字号 font_mid_num=100 而不是 font_big=180）
+    # —— 删掉单独年份那行，合并到标题里，Hero 区高度骤减
 
     # 人像卡片
-    card_x, card_y = 60, hero_top + 280
+    card_x, card_y = 60, hero_top + 190  # Hero 两行：emoji+标题 + 年份
     card_w, card_h = W - 120, 560
     _draw_rounded_card(canvas, card_x, card_y, card_w, card_h, radius=40)
 
-    # emoji（Apple Color Emoji 用 160px + embedded_color 才彩色）
-    emoji_font = _find_font(EMOJI_SIZE, emoji=True)
-    _draw_text(draw, persona_emoji, W // 2, card_y + 60, emoji_font, PRIMARY, anchor="mt", embedded_color=True)
+    # emoji（统一用 draw_persona_emoji，paste 更安全不会偏移）
+    _draw_persona_emoji(draw, canvas, persona_emoji, W // 2, card_y + 120, size=130)
 
     # 人设称号
     _draw_text(draw, persona_name, W // 2, card_y + 330, font_title, PRIMARY, anchor="mt")
@@ -194,23 +203,19 @@ def generate_persona_card(data: dict, output_path: str = OUTPUT_CARD_PATH) -> st
     top_y = stats_y + 240
     _draw_rounded_card(canvas, 60, top_y, W - 120, 440, radius=32)
     draw = ImageDraw.Draw(canvas)
-    # Top3 标题：emoji + 文字分开渲染
-    top3_emoji_font = _find_font(80, emoji=True)
-    # 用 mm anchor 居中对齐 emoji + 文字基线
-    _draw_text(draw, "⭐", 80, top_y + 55, top3_emoji_font, PRIMARY, anchor="mm", embedded_color=True)
-    _draw_text(draw, "你最常点的 Top 3", 150, top_y + 30, font_sub, PRIMARY, anchor="lt")
+    # Top3 标题：emoji + 文字
+    _draw_persona_emoji(draw, canvas, "⭐", 90, top_y + 52, size=36)
+    _draw_text(draw, "你最常点的 Top 3", 155, top_y + 30, font_sub, PRIMARY, anchor="lt")
 
     for i, tp in enumerate(top_products[:3]):
         rank_emoji = ["🥇", "🥈", "🥉"][i] if i < 3 else "#"
         rank_num = "" if i < 3 else str(i+1)
-        row_y = top_y + 110 + i * 95
-        # 奖牌 emoji 单独渲染（用小一号 emoji 字体）
-        medal_font = _find_font(80, emoji=True)
-        _draw_text(draw, rank_emoji, 100 + 40, row_y + 8, medal_font, SECONDARY, anchor="mm", embedded_color=True)
+        row_y = top_y + 120 + i * 100
+        # 奖牌 emoji：用 draw_persona_emoji（正确 paste 不会溢出）
+        _draw_persona_emoji(draw, canvas, rank_emoji, 140, row_y + 15, size=36)
         if rank_num:
-            _draw_text(draw, rank_num, 100 + 80, row_y, font_body, SECONDARY, anchor="lt")
-        _draw_text(draw, tp["name"], 170, row_y, font_body, TEXT_DARK, anchor="lt")
-        # 数量右对齐
+            _draw_text(draw, rank_num, 150, row_y, font_body, SECONDARY, anchor="lt")
+        _draw_text(draw, tp["name"], 185, row_y, font_body, TEXT_DARK, anchor="lt")
         qty_text = f"× {tp['quantity']}"
         _draw_text(draw, qty_text, W - 100, row_y, font_body, PRIMARY, anchor="rt")
         # 分割线
@@ -218,14 +223,14 @@ def generate_persona_card(data: dict, output_path: str = OUTPUT_CARD_PATH) -> st
             draw.line([(100, row_y + 60), (W - 100, row_y + 60)], fill=(255, 224, 178), width=1)
 
     # === 参赛水印 ===
-    footer_y = H - 160
+    footer_y = H - 200
     draw = ImageDraw.Draw(canvas)
-    # footer emoji + 文字
-    footer_emoji_font = _find_font(60, emoji=True)
-    _draw_text(draw, "🍟", W // 2 - 140, footer_y + 10, footer_emoji_font, TEXT_LIGHT, anchor="mm", embedded_color=True)
-    _draw_text(draw, "麦门年度体检报告", W // 2 + 20, footer_y + 15, font_sub, TEXT_LIGHT, anchor="mt")
-    _draw_text(draw, "Powered by 麦当劳中国官方 MCP Server", W // 2, footer_y + 55, font_small, TEXT_LIGHT, anchor="mt")
-    _draw_text(draw, "2026 麦当劳程序员创意开发大赛参赛作品", W // 2, footer_y + 95, font_small, (255, 255, 255, 200), anchor="mt")
+    # Footer：emoji + 主标题 在上方居中一行，下面两行小字
+    emoji_x = W // 2 - 180
+    _draw_persona_emoji(draw, canvas, "🍟", emoji_x, footer_y + 30, size=44)
+    _draw_text(draw, "麦门年度体检报告", W // 2 + 15, footer_y + 30, font_sub, TEXT_LIGHT, anchor="mm")
+    _draw_text(draw, "Powered by 麦当劳中国官方 MCP Server", W // 2, footer_y + 70, font_small, TEXT_LIGHT, anchor="mt")
+    _draw_text(draw, "2026 麦当劳程序员创意开发大赛参赛作品", W // 2, footer_y + 100, font_small, (255, 255, 255, 200), anchor="mt")
 
     # === 保存 ===
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
