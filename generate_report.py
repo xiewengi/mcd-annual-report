@@ -255,6 +255,15 @@ HTML_TEMPLATE_STR = """<!DOCTYPE html>
   </div>
 </div>
 
+<!-- 数据可信度总览 -->
+<div class="card">
+  <h2>🔍 数据可信度</h2>
+  <p style="color:#888; font-size:0.9em; margin-bottom:20px;">
+    营养数据来自麦当劳官方营养表。以下是你历史订单中各条商品的匹配情况——精确匹配越多，报告越准。
+  </p>
+  __match_breakdown_html__
+</div>
+
 <!-- 健康评估 -->
 <div class="card">
   <h2>❤️ 健康评分</h2>
@@ -407,7 +416,31 @@ def render_report(data: dict, output_path: str):
     persona = data.get("persona", {})
     keywords = data.get("keywords", [])
     orders = data.get("orders_detail", [])
+    match_breakdown = data.get("match_breakdown", [])
     
+    # 匹配可信度总览
+    match_breakdown_html = ""
+    for mb in match_breakdown:
+        if mb["count"] == 0 and mb["level"] != "unmatched":
+            continue
+        # 颜色：exact 绿 / fuzzy 橙 / contain 蓝 / fallback 红 / unmatched 灰
+        color_map = {
+            "exact": "#4caf50", "fuzzy": "#ff9800", "contain": "#2196f3",
+            "fallback": "#f44336", "unmatched": "#9e9e9e",
+        }
+        bar_color = color_map.get(mb["level"], "#9e9e9e")
+        match_breakdown_html += f"""
+          <div style="margin:12px 0;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span style="font-weight:600;">{mb['label']}</span>
+              <span style="color:#666;">{mb['count']} 项 · {mb['pct']}%</span>
+            </div>
+            <div style="background:#ffe0b2; border-radius:12px; height:20px; overflow:hidden;">
+              <div style="width:{mb['pct']}%; height:100%; background:{bar_color}; border-radius:12px;"></div>
+            </div>
+          </div>
+        """
+
     # 健康评分行
     health_rows = ""
     scores = health.get("scores", {})
@@ -552,6 +585,7 @@ def render_report(data: dict, output_path: str):
     html = html.replace("__total_amount__", str(summary.get("total_amount", 0)))
     html = html.replace("__avg_orders_per_week__", str(summary.get("avg_orders_per_week", 0)))
     html = html.replace("__nutrition_match_rate__", str(summary.get("nutrition_match_rate", 0)))
+    html = html.replace("__match_breakdown_html__", match_breakdown_html)
     html = html.replace("__health_overall__", str(health.get("overall_score", "--")))
     html = html.replace("__health_grade__", str(health.get("grade", "")))
     html = html.replace("__health_rows__", health_rows)

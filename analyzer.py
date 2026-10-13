@@ -105,43 +105,75 @@ class AnnualAnalyzer:
             (["汉堡"], "不素之霸双层牛堡"),
         ]
     
+    # 匹配等级常量
+    MATCH_EXACT = "exact"          # 精确匹配
+    MATCH_FUZZY = "fuzzy"          # 模糊词匹配（同义词表命中）
+    MATCH_CONTAIN = "contain"      # 包含匹配
+    MATCH_FALLBACK = "fallback"    # Fallback 估算（新品/限定品）
+
+    MATCH_LABEL = {
+        "exact": ("✅", "精确匹配"),
+        "fuzzy": ("🔶", "模糊匹配"),
+        "contain": ("🔸", "包含匹配"),
+        "fallback": ("⚠️", "估算（基于类似商品）"),
+    }
+
     def _match_nutrition(self, product_name: str) -> Optional[dict]:
-        """把订单里的商品名匹配到营养表"""
+        """把订单里的商品名匹配到营养表，带可信度标注"""
         if not product_name:
             return None
-        
+
         # 1. 精确匹配
         if product_name in self.nutrition_map:
-            return self.nutrition_map[product_name]
-        
-        # 2. 模糊匹配表
+            result = dict(self.nutrition_map[product_name])
+            result["_match_level"] = self.MATCH_EXACT
+            result["_match_desc"] = f"精确匹配到「{product_name}」"
+            return result
+
+        # 2. 模糊匹配表（同义词/变体）
         for canonical, variants in self._fuzzy_patterns:
             if product_name == canonical or product_name in variants:
-                return self.nutrition_map.get(canonical)
+                result = dict(self.nutrition_map.get(canonical, {}))
+                if result:
+                    result["_match_level"] = self.MATCH_FUZZY
+                    result["_match_desc"] = f"模糊匹配：「{product_name}」→ 营养表「{canonical}」"
+                    return result
             if canonical in product_name:
-                return self.nutrition_map.get(canonical)
+                result = dict(self.nutrition_map.get(canonical, {}))
+                if result:
+                    result["_match_level"] = self.MATCH_FUZZY
+                    result["_match_desc"] = f"模糊匹配（包含）：「{product_name}」→ 营养表「{canonical}」"
+                    return result
             for v in variants:
                 if v in product_name or product_name in v:
-                    return self.nutrition_map.get(canonical)
-        
-        # 3. 包含匹配
+                    result = dict(self.nutrition_map.get(canonical, {}))
+                    if result:
+                        result["_match_level"] = self.MATCH_FUZZY
+                        result["_match_desc"] = f"模糊匹配：「{product_name}」→ 营养表「{canonical}」"
+                        return result
+
+        # 3. 包含匹配（营养表名字包含商品名或反之）
         for nname, ndata in self.nutrition_map.items():
             if nname in product_name or product_name in nname:
-                return ndata
-        
+                result = dict(ndata)
+                result["_match_level"] = self.MATCH_CONTAIN
+                result["_match_desc"] = f"包含匹配：「{product_name}」↔「{nname}」"
+                return result
+
         # 4. Fallback 估算（新品/限定品在营养表里找不到时）
         for keywords, ref_food in self._fallback_estimations:
             for kw in keywords:
                 if kw in product_name:
                     ref = self.nutrition_map.get(ref_food)
                     if ref:
-                        # 标记为估算
                         estimated = dict(ref)
                         estimated["_estimated"] = True
                         estimated["_estimated_from"] = ref_food
                         estimated["name"] = product_name  # 保留原商品名
+                        estimated["_match_level"] = self.MATCH_FALLBACK
+                        estimated["_match_desc"] = f"估算（营养表无此商品）：基于「{ref_food}」近似"
                         return estimated
-        
+
         return None
     
     def _extract_products(self, order: dict) -> list:
@@ -172,6 +204,7 @@ class AnnualAnalyzer:
         parsed_orders = []
         unmatched_products = Counter()
         total_proteins = Counter()  # 统计匹配情况
+        match_level_counts = Counter()  # 各匹配级别计数
         
         for order in self.orders:
             create_time = order.get("createTime", "")
@@ -195,6 +228,9 @@ class AnnualAnalyzer:
                         **nutri
                     })
                     total_proteins["matched"] += 1
+                    # 记录匹配级别
+                    lvl = nutri.get("_match_level", self.MATCH_EXACT)
+                    match_level_counts[lvl] += 1
                 else:
                     unmatched_products[pname] += 1
                     item_nutritions.append({
@@ -203,6 +239,7 @@ class AnnualAnalyzer:
                         "name_only": True
                     })
                     total_proteins["unmatched"] += 1
+                    match_level_counts["unmatched"] += 1
             
             # 累计本单营养
             order_kcal = sum(item.get("energy_kcal", 0) * item["qty"] 
@@ -275,6 +312,11 @@ class AnnualAnalyzer:
                 ),
                 "unmatched_products": list(unmatched_products.most_common(10)),
             },
+            # 营养匹配可信度总览
+            "match_breakdown": self._build_match_breakdown(
+                match_level_counts,
+                total_proteins["matched"] + total_proteins["unmatched"]
+            ),
             "nutrition_total": nutrition_totals,
             "kcal_stats": {
                 "avg_per_order": round(avg_kcal_per_order, 0),
@@ -562,3 +604,27 @@ class AnnualAnalyzer:
             highlights.append(f"📊 每月平均 {round(freq, 1)} 单麦当劳")
         
         return highlights
+
+    def _build_match_breakdown(self, match_level_counts: Counter, total: int) -> list:
+        """构建营养匹配可信度总览"""
+        breakdown = []
+        # 按可信度从高到低排列
+        level_order = [
+            (self.MATCH_EXACT, "✅ 精确匹配"),
+            (self.MATCH_FUZZY, "🔶 模糊匹配"),
+            (self.MATCH_CONTAIN, "🔸 包含匹配"),
+            (self.MATCH_FALLBACK, "⚠️ 估算（新品/限定品）"),
+            ("unmatched", "❌ 未匹配"),
+        ]
+        for level, label in level_order:
+            cnt = match_level_counts.get(level, 0)
+            if cnt == 0 and level != "unmatched":
+                continue  # 跳过零项
+            pct = round(cnt / max(total, 1) * 100, 1)
+            breakdown.append({
+                "level": level,
+                "label": label,
+                "count": cnt,
+                "pct": pct,
+            })
+        return breakdown
